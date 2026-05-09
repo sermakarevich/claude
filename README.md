@@ -1,6 +1,4 @@
-# claude
-
-Claude Extensions.
+# Claude Extensions
 
 ## Refs
 
