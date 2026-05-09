@@ -1,0 +1,22 @@
+2026-05-09T19:48:58+00:00 /tmp/shortcuts-test-cwd: caught `q:` event=UserPromptSubmit
+2026-05-09T19:48:58+00:00 /tmp/shortcuts-test-cwd: `q:` → injected (dst=/tmp/shortcuts-test-cwd/.claude/artifacts/Q&A.md, content='what is a hook payload?')
+2026-05-09T19:50:27+00:00 /Users/makarevychsergii/git/claude: caught `q:` event=UserPromptSubmit
+2026-05-09T19:50:27+00:00 /Users/makarevychsergii/git/claude: `q:` → injected (dst=/Users/makarevychsergii/git/claude/.claude/artifacts/Q&A.md, content='what are the params a hook receive in Claude Code?')
+2026-05-09T19:54:04+00:00 /tmp/shortcut-smoke: caught `q:` event=UserPromptSubmit
+2026-05-09T19:54:04+00:00 /tmp/shortcut-smoke: `q:` → injected (dst=/tmp/shortcut-smoke/.claude/artifacts/Q&A.md, content='smoke test')
+2026-05-09T19:54:12+00:00 /tmp/shortcut-smoke: caught `q:` event=UserPromptSubmit
+2026-05-09T19:54:12+00:00 /tmp/shortcut-smoke: `q:` → injected (dst=/tmp/shortcut-smoke/.claude/artifacts/Q&A.md, content='another')
+2026-05-09T19:54:12+00:00 /tmp/shortcut-smoke: caught `fix:` event=UserPromptSubmit
+2026-05-09T19:54:12+00:00 /tmp/shortcut-smoke: `fix:` → injected (dst=/tmp/shortcut-smoke/.claude/artifacts/INSTRUCTIONS.md, content='never use sed')
+2026-05-09T19:54:45+00:00 /Users/makarevychsergii/git/claude: caught `fix:` event=UserPromptSubmit
+2026-05-09T19:54:45+00:00 /Users/makarevychsergii/git/claude: `fix:` → injected (dst=/Users/makarevychsergii/git/claude/.claude/artifacts/INSTRUCTIONS.md, content='try creating instructions short and precise')
+2026-05-09T19:59:43+00:00 /tmp/claudemd-case1: caught `fix:` event=UserPromptSubmit
+2026-05-09T19:59:43+00:00 /tmp/claudemd-case1: `fix:` → injected (dst=/tmp/claudemd-case1/.claude/artifacts/INSTRUCTIONS.md, content='foo')
+2026-05-09T19:59:43+00:00 /tmp/claudemd-case2: caught `fix:` event=UserPromptSubmit
+2026-05-09T19:59:43+00:00 /tmp/claudemd-case2: `fix:` → injected (dst=/tmp/claudemd-case2/.claude/artifacts/INSTRUCTIONS.md, content='foo')
+2026-05-09T19:59:43+00:00 /tmp/claudemd-case3: caught `fix:` event=UserPromptSubmit
+2026-05-09T19:59:43+00:00 /tmp/claudemd-case3: `fix:` → injected (dst=/tmp/claudemd-case3/.claude/artifacts/INSTRUCTIONS.md, content='foo')
+2026-05-09T19:59:43+00:00 /tmp/claudemd-case3: caught `fix:` event=UserPromptSubmit
+2026-05-09T19:59:43+00:00 /tmp/claudemd-case3: `fix:` → injected (dst=/tmp/claudemd-case3/.claude/artifacts/INSTRUCTIONS.md, content='foo')
+2026-05-09T19:59:56+00:00 /Users/makarevychsergii/git/claude: caught `fix:` event=UserPromptSubmit
+2026-05-09T19:59:56+00:00 /Users/makarevychsergii/git/claude: `fix:` → injected (dst=/Users/makarevychsergii/git/claude/.claude/artifacts/INSTRUCTIONS.md, content='try creating instructions short and precise')
