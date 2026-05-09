@@ -1,4 +1,4 @@
-# FINX — Investor Podcast Signal Aggregation
+# FUTURUM EQUITIES 20260509 — Investor Podcast Signal Aggregation
 
 Extracted from 5 YouTube episodes via the `youtube_transcript` MCP. Each episode was processed by a dedicated subagent that pulled a tickers-to-buy / tickers-to-sell / tickers-owned summary, with reasoning faithful to the speakers.
 
