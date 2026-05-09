@@ -10,5 +10,5 @@ See [status_line/](status_line/) — run `status_line/install.sh` to install.
 
 ## Refs
 
-- [hooks/shortcuts/](hooks/shortcuts/) — quickly register prompt prefixes (e.g. `fix:`, `q:`) that fire a custom Python callable on `UserPromptSubmit` or `Stop`. The callable can inject extra context into the current turn, fork a background `claude -p` session, write to per-repo or global artifact files, capture the model's reply from the transcript, or run any other side-effect.
+- [hooks/shortcuts/](hooks/shortcuts/) — quickly register prompt prefixes (e.g. `fix:`, `q:`) that fire a custom Python callable on any Claude Code hook event. The callable can inject extra context into the current turn, fork a background `claude -p` session, write to per-repo or global artifact files, capture the model's reply from the transcript, or run any other side-effect.
 - [mcp/youtube_transcript/](mcp/youtube_transcript/) — MCP server exposing a tool to fetch YouTube video transcripts by URL or video ID.
