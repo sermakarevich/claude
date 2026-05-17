@@ -22,6 +22,12 @@ echo "  target : $TARGET_DIR"
 mkdir -p "$TARGET_DIR"
 cp "$SCRIPT_DIR/server.py" "$TARGET_DIR/server.py"
 
+# Mirror the instructions/ folder so `workflow://<name>` resources resolve.
+rm -rf "$TARGET_DIR/instructions"
+if [ -d "$SCRIPT_DIR/instructions" ]; then
+    cp -R "$SCRIPT_DIR/instructions" "$TARGET_DIR/instructions"
+fi
+
 echo "Pre-warming uv cache ..."
 uv sync --script "$TARGET_DIR/server.py" >/dev/null 2>&1 || true
 

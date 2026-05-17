@@ -8,11 +8,35 @@
 # ///
 """MCP server exposing YouTube transcript extraction as a tool."""
 
+from pathlib import Path
+
 from mcp.server.fastmcp import FastMCP
 from youtube_transcript_api import YouTubeTranscriptApi
 from youtube_transcript_api._errors import TranscriptsDisabled, NoTranscriptFound
 
-mcp = FastMCP("youtube_transcript")
+INSTRUCTIONS_DIR = Path(__file__).parent / "instructions"
+
+
+def _instruction_names() -> list[str]:
+    if not INSTRUCTIONS_DIR.is_dir():
+        return []
+    return sorted(p.stem for p in INSTRUCTIONS_DIR.glob("*.md"))
+
+
+_names = _instruction_names()
+_names_hint = f"\n\nAvailable instructions: {', '.join(_names)}." if _names else ""
+
+mcp = FastMCP(
+    "youtube_transcript",
+    instructions=(
+        "Extract YouTube transcripts and run analysis workflows over them. "
+        "Transcript tools: `get_transcript`, `get_transcript_with_timestamps`. "
+        "Workflow tools: `list_instructions` (enumerate workflows), "
+        "`get_instructions` (fetch a workflow's markdown body). "
+        f"Workflow files live in `{INSTRUCTIONS_DIR}`."
+        + _names_hint
+    ),
+)
 
 
 def _extract_video_id(url_or_id: str) -> str:
@@ -68,6 +92,35 @@ def get_transcript_with_timestamps(video: str, languages: list[str] | None = Non
         {"text": s.text, "start": s.start, "duration": s.duration}
         for s in transcript.snippets
     ]
+
+
+@mcp.tool()
+def list_instructions() -> list[str]:
+    """List the names of available analysis workflows.
+
+    Returns:
+        Workflow names (filename stems of `.md` files in the instructions folder).
+        Pass any of these to `get_instructions` to fetch the full markdown body.
+    """
+    return _instruction_names()
+
+
+@mcp.tool()
+def get_instructions(name: str) -> str:
+    """Fetch the markdown body of a named analysis workflow.
+
+    Args:
+        name: Workflow name as returned by `list_instructions` (filename stem,
+            without the `.md` extension).
+
+    Returns:
+        The raw markdown content, or an error message if the workflow is missing.
+    """
+    path = INSTRUCTIONS_DIR / f"{name}.md"
+    if not path.is_file():
+        available = ", ".join(_instruction_names()) or "(none)"
+        return f"Error: instructions '{name}' not found. Available: {available}"
+    return path.read_text()
 
 
 if __name__ == "__main__":
