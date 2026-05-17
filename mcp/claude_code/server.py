@@ -5,13 +5,11 @@
 #     "mcp>=1.0.0",
 # ]
 # ///
-"""MCP server exposing Claude Code as a delegated-agent tool.
+"""MCP server for web search, research, and powerful-model consulting.
 
-Wraps `claude -p` (headless mode). Lets a third-party MCP-speaking agent —
-another agent like hermes, a local Ollama-backed assistant, etc. — delegate
-work to Claude Code over the user's existing Claude subscription rather than
-spending its own API credits or hitting the capability ceiling of a small
-local model.
+Wraps `claude -p` (headless mode), defaulting to Opus, so a caller can hand
+off a question that benefits from live web access, a deeper research pass,
+or a stronger reasoner than the caller itself.
 """
 
 import json
@@ -29,15 +27,13 @@ PERMISSION_MODES = ("acceptEdits", "auto", "bypassPermissions", "default", "dont
 mcp = FastMCP(
     "claude_code",
     instructions=(
-        "Delegate tasks to a headless Claude Code session. Intended for "
-        "third-party MCP-speaking agents — e.g. hermes, or a local Ollama-"
-        "backed agent — to route work through the user's existing Claude "
-        "Code subscription instead of spending their own API credits or "
-        "being limited by a small local model. Pass a prompt and optional "
-        "knobs (cwd, model, allowed/disallowed tools, system-prompt "
-        "appendix, permission mode, resume session id). Returns the final "
-        "reply along with session_id, cost, duration, and turn count. Reuse "
-        "session_id to continue a prior conversation."
+        "Use for web search, research, and consulting a more capable model. "
+        "Wraps a headless Claude Code session that defaults to Opus and can "
+        "perform live web searches, fetch URLs, read files, and synthesize "
+        "a final answer. Pass a prompt; optional knobs: cwd, model, "
+        "allowed/disallowed tools, system-prompt appendix, permission mode, "
+        "resume session id. Returns the final reply along with session_id, "
+        "cost, duration, and turn count. Reuse session_id to continue."
     ),
 )
 
@@ -83,7 +79,7 @@ def ask_claude(
     allowed_tools: list[str] | None = None,
     disallowed_tools: list[str] | None = None,
     append_system_prompt: str | None = None,
-    model: str | None = None,
+    model: str | None = "opus",
     resume_session: str | None = None,
     permission_mode: str | None = None,
     add_dir: list[str] | None = None,
@@ -98,7 +94,7 @@ def ask_claude(
         allowed_tools: Tool allowlist (e.g. ["Read", "Bash(git *)", "Edit"]).
         disallowed_tools: Tool denylist; same format as `allowed_tools`.
         append_system_prompt: String appended to Claude's default system prompt.
-        model: Model alias ("opus", "sonnet", "haiku") or full ID.
+        model: Model alias ("opus", "sonnet", "haiku") or full ID. Default: "opus".
         resume_session: UUID of a prior session to continue.
         permission_mode: One of "acceptEdits", "auto", "bypassPermissions",
             "default", "dontAsk", "plan". Headless sessions can't show prompts,
