@@ -7,12 +7,14 @@ Drop-in conventions for working with Claude inside a repo. Each pattern is a sel
 | [`task_loop/`](task_loop/) | TODO → pick → DONE cycle. Tracks what gets worked on. No artifact materialization. |
 | [`artifacts_store/`](artifacts_store/) | Materialize every substantive output as a markdown artifact + INDEX. No task tracking. |
 | [`artifacts_loop/`](artifacts_loop/) | Task loop + artifact materialization combined. |
+| [`artifacts_tree_loop/`](artifacts_tree_loop/) | `artifacts_loop` with a hierarchical (tree-of-`INDEX.md`) artifact store for progressive disclosure. See [`DESIGN.md`](DESIGN.md). |
 
 ## Picking a pattern
 
 - Want a queue of work but outputs are code/changes only → `task_loop`
 - Want durable analysis/report artifacts but no task queue → `artifacts_store`
-- Want both (most common) → `artifacts_loop`
+- Want both, flat & small (<20 artifacts) → `artifacts_loop`
+- Want both, with many artifacts across sub-topics → `artifacts_tree_loop`
 
 ## Install
 
