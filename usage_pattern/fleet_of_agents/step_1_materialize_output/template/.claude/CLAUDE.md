@@ -2,7 +2,7 @@
 
 When the user gives you a task with a `task_id` (e.g. `work on task t-001: <description>`), materialize the work as on-disk files in `.claude/tasks/<task_id>/`. This survives across sessions: re-invoking you with the same id continues the work instead of restarting it.
 
-## Artifact directory
+## Per-task artifact directory
 
 Each task lives at `.claude/tasks/<task_id>/` with three files:
 

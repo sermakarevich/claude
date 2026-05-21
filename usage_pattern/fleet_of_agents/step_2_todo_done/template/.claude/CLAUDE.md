@@ -10,7 +10,7 @@ Each task lives at `.claude/tasks/<task_id>/` with three files:
 - `PLAN_AND_PROGRESS.md` — numbered checklist of steps, with status markers (see format below). Keep this current as you work.
 - `FINDINGS.md` — substantive output, decisions, or discoveries surfaced while doing the work. Plain markdown. Optional — create it only when there is something worth recording.
 
-## Resume rule (do this FIRST when given a `task_id`)
+## Resume rule (do this FIRST)
 
 Before doing anything else, check whether `.claude/tasks/<task_id>/` already exists.
 
@@ -52,7 +52,7 @@ Keep it short. One pass to read; status visible inline.
 
 ## TODO → DONE flow
 
-When the user prompts you to take the next task (e.g. `take the next task per CLAUDE.md`):
+When the user prompts you to take the next task (e.g. `Take the next task from .claude/tasks/TODO.md per CLAUDE.md`):
 
 1. Read `.claude/tasks/TODO.md`. Pick the top bullet (the first non-empty `- ` line).
 2. Pick a sequential `<task_id>` — the next available `t-NNN` based on existing subdirectories in `.claude/tasks/` (e.g. if `t-001/` and `t-002/` exist, use `t-003`).
