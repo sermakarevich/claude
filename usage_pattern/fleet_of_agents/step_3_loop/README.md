@@ -44,7 +44,7 @@ If your project already has a `.claude/CLAUDE.md`, paste the contents of [`templ
    ./loop.sh
    ```
 
-3. Observe: one log line per iteration (`→ iter 1`, `→ iter 2`, `→ iter 3`), three iterations, then `TODO empty, stopping.`
+3. Observe: one log line per iteration (`→ iter 1`, `→ iter 2`, `→ iter 3`), three iterations, then `TODO empty, sleeping 10s` — the loop keeps polling. Stop it with `Ctrl+C` when you're done.
 
 4. Verify:
 
@@ -54,4 +54,4 @@ If your project already has a `.claude/CLAUDE.md`, paste the contents of [`templ
    ls .claude/tasks/             # t-001/  t-002/  t-003/  TODO.md  DONE.md
    ```
 
-5. Cap iterations with `MAX_ITERS=2 ./loop.sh` if you want to stop early; default is 100.
+5. The loop runs forever — when `TODO.md` drains it sleeps 10 seconds and re-checks, so you can append more bullets later and they'll get picked up. Stop with `Ctrl+C`.

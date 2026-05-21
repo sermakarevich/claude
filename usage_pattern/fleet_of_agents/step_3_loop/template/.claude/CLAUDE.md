@@ -69,7 +69,7 @@ When the user prompts you to take the next task (e.g. `Take the next task from .
 
 ## Loop awareness
 
-You are being driven by `loop.sh`, which invokes you repeatedly with the same prompt (`Take the next task from .claude/tasks/TODO.md per CLAUDE.md`). Your job per invocation is exactly the TODO → DONE flow above — pick one task, do it, prepend to `DONE.md`, remove the bullet from `TODO.md`. Do not try to drain the whole queue in a single invocation. The loop stops itself when `TODO.md` has no more bullets.
+You are being driven by `loop.sh`, which invokes you repeatedly with the same prompt (`Take the next task from .claude/tasks/TODO.md per CLAUDE.md`). Your job per invocation is exactly the TODO → DONE flow above — pick one task, do it, prepend to `DONE.md`, remove the bullet from `TODO.md`. Do not try to drain the whole queue in a single invocation. The loop runs forever — when `TODO.md` is empty it sleeps and re-checks; the human stops it with `Ctrl+C`.
 
 ## Discipline
 

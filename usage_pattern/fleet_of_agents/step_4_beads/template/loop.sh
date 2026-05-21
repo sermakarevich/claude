@@ -4,11 +4,10 @@ set -euo pipefail
 export BEADS_ACTOR="${BEADS_ACTOR:-${USER}-loop-$$}"
 echo "Loop actor: ${BEADS_ACTOR}"
 
-MAX_ITERS=${MAX_ITERS:-100}
 mkdir -p logs
 i=0
 
-while [ "$i" -lt "$MAX_ITERS" ]; do
+while :; do
   next=$(bd ready --json --limit 1 2>/dev/null | jq -r '(.data // .)[0].id // ""')
   if [ -z "$next" ]; then
     echo "no ready tasks, sleeping 10s"
@@ -34,4 +33,3 @@ while [ "$i" -lt "$MAX_ITERS" ]; do
 
   i=$((i+1))
 done
-echo "Reached MAX_ITERS=$MAX_ITERS, stopping."

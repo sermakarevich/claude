@@ -10,6 +10,3 @@ A tutorial that builds up to running a fleet of Claude coding agents in parallel
 | [Step 4 — beads](step_4_beads/) | Replaces `TODO.md`/`DONE.md` with `bd`; the loop atomically claims tasks; multiple `./loop.sh` instances can run in parallel. | A fleet of parallel agents on a shared queue. |
 | [Step 5 — Q&A blocking](step_5_qa_blocking/) | Agent can ask you a question (writes to `Q&A.md` + marks the task blocked); the loop skips blocked tasks until you answer. | A fleet that can stop and ask instead of guessing. |
 
-## Reference
-
-The working implementation this tutorial simplifies from: `/Users/makarevychsergii/git/raye/.claude_loop/`.

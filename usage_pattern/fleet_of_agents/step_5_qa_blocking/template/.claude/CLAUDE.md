@@ -84,7 +84,7 @@ Your job per invocation:
 
 ## Loop awareness
 
-`loop.sh` invokes you once per claimed task and re-invokes you on the next iteration with the next ready task — the same prompt each time. Your job per invocation is exactly the Beads task flow above. The loop stops itself when `bd ready` returns no tasks (it sleeps and re-peeks) or when `MAX_ITERS` is reached. If you exit non-zero, the loop releases your claimed task back to `ready` so it can be retried. Tasks you mark `blocked` are skipped by `bd ready` until a human re-opens them; the loop then re-picks them and you resume from the answer in `Q&A.md`.
+`loop.sh` invokes you once per claimed task and re-invokes you on the next iteration with the next ready task — the same prompt each time. Your job per invocation is exactly the Beads task flow above. The loop runs forever — when `bd ready` returns no tasks it sleeps and re-peeks; the human stops it with `Ctrl+C`. If you exit non-zero, the loop releases your claimed task back to `ready` so it can be retried. Tasks you mark `blocked` are skipped by `bd ready` until a human re-opens them; the loop then re-picks them and you resume from the answer in `Q&A.md`.
 
 ## Q&A protocol (asking the human)
 
