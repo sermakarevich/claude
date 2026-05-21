@@ -8,6 +8,7 @@ Drop-in conventions for working with Claude inside a repo. Each pattern is a sel
 | [`artifacts_store/`](artifacts_store/) | Materialize every substantive output as a markdown artifact + INDEX. No task tracking. |
 | [`artifacts_loop/`](artifacts_loop/) | Task loop + artifact materialization combined. |
 | [`artifacts_tree_loop/`](artifacts_tree_loop/) | `artifacts_loop` with a hierarchical (tree-of-`INDEX.md`) artifact store for progressive disclosure. See [`DESIGN.md`](DESIGN.md). |
+| [`fleet_of_agents/`](fleet_of_agents/) | Five-step tutorial: build from a single resumable agent up to a parallel fleet on a shared beads queue. |
 
 ## Picking a pattern
 
@@ -15,6 +16,7 @@ Drop-in conventions for working with Claude inside a repo. Each pattern is a sel
 - Want durable analysis/report artifacts but no task queue → `artifacts_store`
 - Want both, flat & small (<20 artifacts) → `artifacts_loop`
 - Want both, with many artifacts across sub-topics → `artifacts_tree_loop`
+- Want to run multiple parallel agents on a shared queue → `fleet_of_agents`
 
 ## Install
 
