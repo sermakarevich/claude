@@ -12,6 +12,7 @@ _KEY_TYPES: dict[str, type] = {
     "claim_poll_interval_sec": int,
     "shutdown_grace_sec": int,
     "rate_limit_default_sleep_sec": int,
+    "status_log_interval_sec": int,
     "artifact_root": str,
     "log_root": str,
 }
@@ -34,6 +35,7 @@ class RuntimeConfig:
     claim_poll_interval_sec: int = 5
     shutdown_grace_sec: int = 30
     rate_limit_default_sleep_sec: int = 300
+    status_log_interval_sec: int = 30
     artifact_root: str = ".claude/tasks"
     log_root: str = "logs"
 
