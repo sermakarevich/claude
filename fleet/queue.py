@@ -33,6 +33,15 @@ class Queue(ABC):
     @abstractmethod
     def list_ready(self, limit: int = 50) -> list[Task]: ...
 
+    @abstractmethod
+    def create_task(
+        self,
+        title: str,
+        description: str | None = None,
+        depends_on: list[str] | None = None,
+        labels: list[str] | None = None,
+    ) -> Task: ...
+
 
 class BeadsQueue(Queue):
     def __init__(self, repo_root: Path) -> None:
@@ -115,3 +124,32 @@ class BeadsQueue(Queue):
             )
             for item in items
         ]
+
+    def create_task(
+        self,
+        title: str,
+        description: str | None = None,
+        depends_on: list[str] | None = None,
+        labels: list[str] | None = None,
+    ) -> Task:
+        args = ["create", "--title", title]
+        if description:
+            args += ["--description", description]
+        result = subprocess.run(
+            ["bd", *args],
+            capture_output=True,
+            text=True,
+            env={**os.environ},
+            cwd=self.repo_root,
+        )
+        if result.returncode != 0:
+            raise BeadsError(result.stderr.strip() or "bd create failed")
+        # bd create prints the new task id as the last token on stdout
+        tokens = result.stdout.strip().split()
+        task_id = tokens[-1] if tokens else ""
+        if not task_id:
+            raise BeadsError("bd create returned no task id")
+        if depends_on:
+            for dep_id in depends_on:
+                self._bd("dep", "add", task_id, dep_id, json_envelope=False)
+        return self.get(task_id)

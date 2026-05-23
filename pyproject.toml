@@ -11,6 +11,9 @@ dependencies = [
     "structlog>=24",
 ]
 
+[project.scripts]
+fleet = "fleet.cli:app"
+
 [project.optional-dependencies]
 dev = ["pytest>=8"]
 
