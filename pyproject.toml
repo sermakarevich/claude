@@ -22,7 +22,7 @@ where = ["."]
 include = ["fleet*"]
 
 [tool.setuptools.package-data]
-fleet = ["hooks/*.sh"]
+fleet = ["hooks/*.sh", "prompts/*.md"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

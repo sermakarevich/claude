@@ -14,3 +14,9 @@ See [status_line/](status_line/) — run `status_line/install.sh` to install.
 - [mcp/youtube_transcript/](mcp/youtube_transcript/) — MCP server exposing a tool to fetch YouTube video transcripts by URL or video ID.
 - [mcp/claude_code/](mcp/claude_code/) — MCP server exposing Claude Code as a delegated-agent tool. Wraps `claude -p` so a third-party MCP-speaking agent (e.g. hermes, or a local Ollama-backed agent) can route work to Claude Code through your existing Claude subscription instead of burning its own API credits or hitting the capability ceiling of a small local model. Returns the final reply plus session metadata for multi-turn continuation.
 - [usage_pattern/](usage_pattern/) — drop-in working conventions for repos. Three patterns: `task_loop` (TODO/DONE queue), `artifacts_store` (materialize outputs as markdown + INDEX), `artifacts_loop` (both combined).
+
+## Python fleet
+
+A headless supervisor that claims tasks from a [beads](https://github.com/gastownhall/beads) queue and runs them through the Claude CLI in a parallel agent loop.
+
+See [fleet/README.md](fleet/README.md) for installation, first-run walkthrough, full command reference, and configuration reference.
