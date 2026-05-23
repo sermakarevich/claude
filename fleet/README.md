@@ -143,22 +143,6 @@ fleet prompt claude --force               # overwrite if it exists
 fleet prompt claude --dest ./CLAUDE.md    # custom destination
 ```
 
-### `fleet create`
-
-Create a task and capture the working directory in one step.
-
-```bash
-fleet create "Write unit tests for module Y"           # captures $PWD as cwd
-fleet create "Refactor parser" --cwd ~/git/project-a \
-    --description "Extract tokenizer to its own file"
-fleet create "Task C" --depends-on fleet-abc --depends-on fleet-def
-fleet create "Fix bug" --label hotfix --label backend
-```
-
-The lower-level `fleet bd create` does not auto-capture cwd — write
-`$FLEET_HOME/tasks/<task_id>/task.json` yourself (one line of `jq` + a
-heredoc, as shown in the first-run setup).
-
 ### `fleet ready`
 
 ```bash

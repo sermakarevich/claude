@@ -100,37 +100,6 @@ def init(
 
 
 @app.command()
-def create(
-    title: Annotated[str, typer.Argument(help="Task title.")],
-    description: Annotated[str | None, typer.Option("--description", "-d", help="Task description.")] = None,
-    depends_on: Annotated[list[str] | None, typer.Option("--depends-on", help="Task IDs this task depends on.")] = None,
-    label: Annotated[list[str] | None, typer.Option("--label", help="Labels to attach.")] = None,
-    cwd: Annotated[
-        str | None,
-        typer.Option(
-            "--cwd",
-            help="Working directory to run the task in. Defaults to the current pwd.",
-        ),
-    ] = None,
-) -> None:
-    """Create a new task and capture the working directory."""
-    q = _queue()
-    resolved_cwd = str(Path(cwd).expanduser().resolve()) if cwd else str(Path.cwd().resolve())
-    try:
-        task = q.create_task(
-            title,
-            description=description,
-            depends_on=depends_on,
-            labels=label,
-            cwd=resolved_cwd,
-        )
-    except BeadsError as exc:
-        typer.echo(str(exc), err=True)
-        raise typer.Exit(1)
-    typer.echo(task.id)
-
-
-@app.command()
 def ready(
     limit: Annotated[int, typer.Option("--limit", "-n", help="Maximum tasks to list.")] = 50,
 ) -> None:

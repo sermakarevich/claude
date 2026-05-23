@@ -23,7 +23,6 @@ def test_help_lists_required_commands() -> None:
     result = runner.invoke(app, ["--help"])
     assert result.exit_code == 0
     for cmd in (
-        "create",
         "ready",
         "show",
         "release",
@@ -41,6 +40,22 @@ def test_help_does_not_list_forbidden_commands() -> None:
     assert result.exit_code == 0
     assert "block" not in result.output
     assert "answer" not in result.output
+
+
+def test_help_does_not_list_create_command() -> None:
+    """`fleet create` was removed; only `fleet bd create` should exist."""
+    result = runner.invoke(app, ["--help"])
+    assert result.exit_code == 0
+    for line in result.output.splitlines():
+        stripped = line.lstrip()
+        assert not stripped.startswith("create "), (
+            f"Expected no top-level `create` command, found: {line!r}"
+        )
+
+
+def test_create_command_invocation_fails() -> None:
+    result = runner.invoke(app, ["create", "Some task"])
+    assert result.exit_code != 0
 
 
 def test_config_help_lists_show_and_set() -> None:
