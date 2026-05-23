@@ -19,6 +19,63 @@ from fleet.queue import Queue
 
 _STDERR_TAIL_BYTES = 2048
 
+_PLAN_AND_STATUS_STUB = """\
+# {task_id} — PLAN_AND_STATUS
+
+> Fleet-managed stub. Agents own the content from the first run onward.
+> Read this file on every start — the task may be a continuation of a
+> prior attempt.
+
+## Restatement
+<one-paragraph restatement of the task>
+
+## Plan
+<numbered steps you intend to take; assumptions and open questions>
+
+## Status
+**Status:** in_progress | blocked | completed
+
+### Done
+- <bullet>
+
+### In progress
+- <bullet>
+
+### Blocked
+- <bullet, or "none">
+"""
+
+_KNOWLEDGE_STUB = """\
+# {task_id} — KNOWLEDGE
+
+> Fleet-managed stub. Persistent cross-attempt knowledge for this task.
+> Append findings, surface-area maps, invariants, and gotchas so future
+> attempts do not re-discover them. Never delete entries — only add.
+
+## Surface area
+<files / modules touched by this task and what role they play>
+
+## Invariants
+<things that must stay true; constraints discovered while working>
+
+## Gotchas
+<surprises, edge cases, brittle tests, anti-patterns to avoid>
+"""
+
+
+def _ensure_artifact_stubs(artifact_dir: Path, task_id: str) -> None:
+    """Create PLAN_AND_STATUS.md and KNOWLEDGE.md stubs if missing.
+
+    Never overwrites existing content — agents own these files after the
+    first run.
+    """
+    plan_and_status = artifact_dir / "PLAN_AND_STATUS.md"
+    if not plan_and_status.exists():
+        plan_and_status.write_text(_PLAN_AND_STATUS_STUB.format(task_id=task_id))
+    knowledge = artifact_dir / "KNOWLEDGE.md"
+    if not knowledge.exists():
+        knowledge.write_text(_KNOWLEDGE_STUB.format(task_id=task_id))
+
 
 class RateGauge(Protocol):
     def update(self, evt: Event) -> None: ...
@@ -33,7 +90,6 @@ class TaskRunner:
         config: RuntimeConfig,
         rate_gauge: RateGauge,
         project_root: Path,
-        log_root: Path,
         log: structlog.BoundLogger,
     ) -> None:
         self._task = task
@@ -42,7 +98,6 @@ class TaskRunner:
         self._config = config
         self._rate_gauge = rate_gauge
         self._project_root = project_root
-        self._log_root = log_root
         self._log = log
         self._proc: asyncio.subprocess.Process | None = None
         self._cancelled = False
@@ -56,10 +111,11 @@ class TaskRunner:
             artifact_root = self._project_root / artifact_root
         artifact_dir = artifact_root / task.id
         artifact_dir.mkdir(parents=True, exist_ok=True)
+        _ensure_artifact_stubs(artifact_dir, task.id)
 
-        attempt = count_attempts(self._log_root, task.id) + 1
+        attempt = count_attempts(artifact_dir) + 1
 
-        with open_attempt_log(self._log_root, task.id, attempt) as attempt_log:
+        with open_attempt_log(artifact_dir, task.id, attempt) as attempt_log:
             stderr_path = Path(attempt_log.stderr_file.name)
 
             argv = self._adapter.build_argv(task, artifact_dir)
@@ -93,6 +149,20 @@ class TaskRunner:
                     continue
 
                 append_event(artifact_dir, evt, attempt)
+
+                if evt.kind == "session_started":
+                    self._log.info("agent_session_started", attempt=attempt)
+                elif evt.kind == "tool_use":
+                    self._log.info(
+                        "agent_tool_use",
+                        attempt=attempt,
+                        tool=evt.raw.get("tool_name") or evt.raw.get("name"),
+                    )
+                elif evt.kind == "assistant_text":
+                    text = (evt.raw.get("text") or "")[:80].replace("\n", " ")
+                    self._log.info("agent_text", attempt=attempt, snippet=text)
+                elif evt.kind == "session_ended":
+                    self._log.info("agent_session_ended", attempt=attempt)
 
                 if evt.kind == "rate_limit_info":
                     self._rate_gauge.update(evt)

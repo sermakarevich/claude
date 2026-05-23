@@ -48,23 +48,23 @@ def test_setup_supervisor_logger_binds_supervisor_context(tmp_path: Path):
 
 
 def test_open_attempt_log_creates_jsonl_and_stderr_files(tmp_path: Path):
+    artifact_dir = tmp_path / "t-001"
     date = datetime.now().strftime("%Y-%m-%d")
-    with open_attempt_log(tmp_path, "t-001", 1) as al:
+    with open_attempt_log(artifact_dir, "t-001", 1) as al:
         al.log.info("subprocess_started")
 
-    stem = f"t-001-attempt-1-{date}"
-    jsonl_path = tmp_path / "attempts" / f"{stem}.jsonl"
-    stderr_path = tmp_path / "attempts" / f"{stem}.stderr"
-    assert jsonl_path.exists()
-    assert stderr_path.exists()
+    stem = f"attempt-1-{date}"
+    assert (artifact_dir / f"{stem}.jsonl").exists()
+    assert (artifact_dir / f"{stem}.stderr").exists()
 
 
 def test_open_attempt_log_jsonl_contains_bound_fields(tmp_path: Path):
+    artifact_dir = tmp_path / "t-001"
     date = datetime.now().strftime("%Y-%m-%d")
-    with open_attempt_log(tmp_path, "t-001", 2) as al:
+    with open_attempt_log(artifact_dir, "t-001", 2) as al:
         al.log.info("subprocess_started")
 
-    jsonl_path = tmp_path / "attempts" / f"t-001-attempt-2-{date}.jsonl"
+    jsonl_path = artifact_dir / f"attempt-2-{date}.jsonl"
     record = json.loads(jsonl_path.read_text().strip())
     assert record["event"] == "subprocess_started"
     assert record["task_id"] == "t-001"
@@ -73,7 +73,7 @@ def test_open_attempt_log_jsonl_contains_bound_fields(tmp_path: Path):
 
 
 def test_open_attempt_log_returns_attempt_log_instance(tmp_path: Path):
-    al = open_attempt_log(tmp_path, "t-001", 1)
+    al = open_attempt_log(tmp_path / "t-001", "t-001", 1)
     assert isinstance(al, AttemptLog)
     assert hasattr(al, "log")
     assert hasattr(al, "event_path")

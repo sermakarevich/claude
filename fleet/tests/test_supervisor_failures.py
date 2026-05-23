@@ -185,7 +185,7 @@ def test_rate_limit_does_not_increment_failure_count(tmp_path: Path) -> None:
     queue = StubQueue()
     s = _make_supervisor(tmp_path, queue)
     s._handle_outcome(_task(), _outcome(TaskOutcome.RATE_LIMIT))
-    assert failure_count(s._resolve_log_root(), "t-001") == 0
+    assert failure_count(s._artifact_dir_for("t-001")) == 0
 
 
 def test_rate_limit_claim_loop_skips_while_paused(tmp_path: Path) -> None:
@@ -216,7 +216,7 @@ def test_context_pressure_does_not_increment_failure_count(tmp_path: Path) -> No
     queue = StubQueue()
     s = _make_supervisor(tmp_path, queue)
     s._handle_outcome(_task(), _outcome(TaskOutcome.CONTEXT_PRESSURE))
-    assert failure_count(s._resolve_log_root(), "t-001") == 0
+    assert failure_count(s._artifact_dir_for("t-001")) == 0
 
 
 # ---------------------------------------------------------------------------
@@ -243,7 +243,7 @@ def test_success_does_not_increment_failure_count(tmp_path: Path) -> None:
     queue = StubQueue(status="in_progress")
     s = _make_supervisor(tmp_path, queue)
     s._handle_outcome(_task(), _outcome(TaskOutcome.SUCCESS))
-    assert failure_count(s._resolve_log_root(), "t-001") == 0
+    assert failure_count(s._artifact_dir_for("t-001")) == 0
 
 
 # ---------------------------------------------------------------------------
@@ -264,4 +264,4 @@ def test_blocked_by_agent_no_failure_increment(tmp_path: Path) -> None:
     queue = StubQueue()
     s = _make_supervisor(tmp_path, queue)
     s._handle_outcome(_task(), _outcome(TaskOutcome.BLOCKED_BY_AGENT))
-    assert failure_count(s._resolve_log_root(), "t-001") == 0
+    assert failure_count(s._artifact_dir_for("t-001")) == 0

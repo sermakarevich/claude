@@ -58,6 +58,7 @@ class Supervisor:
             asyncio.create_task(self._claim_and_spawn_loop(), name="claim_and_spawn"),
             asyncio.create_task(self._reap_loop(), name="reap"),
             asyncio.create_task(self._config_poll_loop(), name="config_poll"),
+            asyncio.create_task(self._status_log_loop(), name="status_log"),
         ]
 
         await self._done.wait()
@@ -95,6 +96,14 @@ class Supervisor:
             if decision == SpawnDecision.SPAWN:
                 task = self._queue.claim_next(claimer_id="supervisor")
                 if task is not None:
+                    self._log.info(
+                        "task_claimed",
+                        task_id=task.id,
+                        title=task.title[:80],
+                        in_flight=len(self.in_flight) + 1,
+                        cap=self.config.max_concurrent,
+                        usage_pct=self.rate_gauge.current_pct(),
+                    )
                     self._spawn_runner(task)
 
             if self._once:
@@ -108,7 +117,6 @@ class Supervisor:
             config=self.config,
             rate_gauge=self.rate_gauge,
             project_root=self._project_root,
-            log_root=self._resolve_log_root(),
             log=self._log.bind(task_id=task.id),
         )
         async_task = asyncio.create_task(runner.run(), name=f"runner:{task.id}")
@@ -178,9 +186,32 @@ class Supervisor:
                 self._config_mtime = new_mtime
                 self._log.info("config_reloaded", path=str(self._runtime_toml_path))
 
-    def _handle_outcome(self, task: Task, outcome: TaskOutcomeRecord) -> None:
-        log_root = self._resolve_log_root()
+    async def _status_log_loop(self) -> None:
+        """Periodically emit a heartbeat with in-flight count and rate-limit usage."""
+        while not self._shutting_down:
+            await asyncio.sleep(self.config.status_log_interval_sec)
+            if self._shutting_down:
+                break
+            self._log_status_snapshot()
 
+    def _log_status_snapshot(self) -> None:
+        self._log.info("supervisor_status", **self._fleet_log_context())
+
+    def _fleet_log_context(self) -> dict:
+        """Snapshot of live fleet stats — in-flight count, rate-limit usage."""
+        return {
+            "in_flight": len(self.in_flight),
+            "cap": self.config.max_concurrent,
+            "usage_pct": self.rate_gauge.current_pct(),
+            "threshold_pct": self.config.rate_limit_threshold_pct,
+            "paused_until": (
+                self._paused_until.isoformat() if self._paused_until is not None else None
+            ),
+            "task_ids": sorted(self.in_flight.keys()),
+        }
+
+    def _handle_outcome(self, task: Task, outcome: TaskOutcomeRecord) -> None:
+        fleet_ctx = self._fleet_log_context()
         match outcome.outcome:
             case TaskOutcome.SUCCESS:
                 still_in_progress = False
@@ -194,13 +225,17 @@ class Supervisor:
                         task.id,
                         reason="agent exited rc=0 without close; re-queueing",
                     )
-                    self._log.info("task_completed_success_re_queued", task_id=task.id)
+                    self._log.info(
+                        "task_completed_success_re_queued", task_id=task.id, **fleet_ctx
+                    )
                 else:
-                    self._log.info("task_completed_success", task_id=task.id)
+                    self._log.info("task_completed_success", task_id=task.id, **fleet_ctx)
 
             case TaskOutcome.CONTEXT_PRESSURE:
                 self._queue.release(task.id, reason="context_pressure; resume on next claim")
-                self._log.info("task_context_pressure_release", task_id=task.id)
+                self._log.info(
+                    "task_context_pressure_release", task_id=task.id, **fleet_ctx
+                )
 
             case TaskOutcome.RATE_LIMIT:
                 now_ts = datetime.now(tz=timezone.utc).timestamp()
@@ -212,18 +247,20 @@ class Supervisor:
                 sleep_until = datetime.fromtimestamp(sleep_until_ts, tz=timezone.utc)
                 if self._paused_until is None or sleep_until > self._paused_until:
                     self._paused_until = sleep_until
+                rate_ctx = {k: v for k, v in fleet_ctx.items() if k != "paused_until"}
                 self._log.warning(
                     "task_rate_limit_release",
                     task_id=task.id,
                     resets_at=resets_at,
                     paused_until=str(self._paused_until),
+                    **rate_ctx,
                 )
 
             case TaskOutcome.BLOCKED_BY_AGENT:
-                self._log.info("task_blocked_by_agent", task_id=task.id)
+                self._log.info("task_blocked_by_agent", task_id=task.id, **fleet_ctx)
 
             case TaskOutcome.FAILURE:
-                new_count = increment_failure(log_root, task.id)
+                new_count = increment_failure(self._artifact_dir_for(task.id))
                 if new_count >= self.config.retry_limit:
                     self._queue.set_blocked(
                         task.id,
@@ -245,6 +282,7 @@ class Supervisor:
                         task_id=task.id,
                         attempts=new_count,
                         retry_limit=self.config.retry_limit,
+                        **fleet_ctx,
                     )
                 else:
                     self._queue.release(
@@ -263,6 +301,7 @@ class Supervisor:
                         task_id=task.id,
                         attempts=new_count,
                         retry_limit=self.config.retry_limit,
+                        **fleet_ctx,
                     )
 
     def _install_signal_handlers(self, loop: asyncio.AbstractEventLoop) -> None:
@@ -321,3 +360,9 @@ class Supervisor:
         if not log_root.is_absolute():
             log_root = self._project_root / log_root
         return log_root
+
+    def _artifact_dir_for(self, task_id: str) -> Path:
+        artifact_root = Path(self.config.artifact_root)
+        if not artifact_root.is_absolute():
+            artifact_root = self._project_root / artifact_root
+        return artifact_root / task_id

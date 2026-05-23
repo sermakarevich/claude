@@ -97,7 +97,6 @@ def _make_runner(
         config=config or RuntimeConfig(),
         rate_gauge=gauge,
         project_root=tmp_path,
-        log_root=tmp_path / "logs",
         log=structlog.get_logger(),
     )
     return runner, queue, gauge
@@ -149,6 +148,37 @@ def test_clean_exit_creates_artifact_dir(tmp_path: Path) -> None:
     asyncio.run(runner.run())
 
     assert (tmp_path / ".claude" / "tasks" / "t-001").is_dir()
+
+
+def test_runner_creates_plan_and_status_and_knowledge_stubs(tmp_path: Path) -> None:
+    runner, _, _ = _make_runner(tmp_path, argv=[sys.executable, "-c", "import sys; sys.exit(0)"])
+
+    asyncio.run(runner.run())
+
+    artifact_dir = tmp_path / ".claude" / "tasks" / "t-001"
+    plan = artifact_dir / "PLAN_AND_STATUS.md"
+    knowledge = artifact_dir / "KNOWLEDGE.md"
+    assert plan.exists(), "fleet must pre-create PLAN_AND_STATUS.md"
+    assert knowledge.exists(), "fleet must pre-create KNOWLEDGE.md"
+    plan_text = plan.read_text()
+    knowledge_text = knowledge.read_text()
+    assert "t-001" in plan_text
+    assert "Status" in plan_text
+    assert "t-001" in knowledge_text
+
+
+def test_runner_does_not_overwrite_existing_stubs(tmp_path: Path) -> None:
+    artifact_dir = tmp_path / ".claude" / "tasks" / "t-001"
+    artifact_dir.mkdir(parents=True)
+    (artifact_dir / "PLAN_AND_STATUS.md").write_text("custom plan content")
+    (artifact_dir / "KNOWLEDGE.md").write_text("custom knowledge content")
+
+    runner, _, _ = _make_runner(tmp_path, argv=[sys.executable, "-c", "import sys; sys.exit(0)"])
+
+    asyncio.run(runner.run())
+
+    assert (artifact_dir / "PLAN_AND_STATUS.md").read_text() == "custom plan content"
+    assert (artifact_dir / "KNOWLEDGE.md").read_text() == "custom knowledge content"
 
 
 # ---------------------------------------------------------------------------

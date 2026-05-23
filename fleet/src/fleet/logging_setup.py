@@ -78,14 +78,13 @@ def setup_supervisor_logger(log_root: Path) -> structlog.BoundLogger:
     return structlog.get_logger().bind(component="supervisor", pid=os.getpid())
 
 
-def open_attempt_log(log_root: Path, task_id: str, attempt: int) -> AttemptLog:
-    """Open per-attempt JSONL and stderr files; return an AttemptLog context manager."""
-    attempts_dir = log_root / "attempts"
-    attempts_dir.mkdir(parents=True, exist_ok=True)
+def open_attempt_log(artifact_dir: Path, task_id: str, attempt: int) -> AttemptLog:
+    """Open per-attempt JSONL and stderr files in the task's artifact dir."""
+    artifact_dir.mkdir(parents=True, exist_ok=True)
     date = datetime.now().strftime("%Y-%m-%d")
-    stem = f"{task_id}-attempt-{attempt}-{date}"
-    jsonl_path = attempts_dir / f"{stem}.jsonl"
-    stderr_path = attempts_dir / f"{stem}.stderr"
+    stem = f"attempt-{attempt}-{date}"
+    jsonl_path = artifact_dir / f"{stem}.jsonl"
+    stderr_path = artifact_dir / f"{stem}.stderr"
     jsonl_file = jsonl_path.open("a", encoding="utf-8")
     stderr_file = stderr_path.open("ab", buffering=0)
     log = structlog.wrap_logger(
