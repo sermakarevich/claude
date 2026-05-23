@@ -18,5 +18,8 @@ dev = ["pytest>=8"]
 where = ["."]
 include = ["fleet*"]
 
+[tool.setuptools.package-data]
+fleet = ["hooks/*.sh"]
+
 [tool.pytest.ini_options]
 testpaths = ["tests"]

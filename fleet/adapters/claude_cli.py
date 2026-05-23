@@ -1,4 +1,8 @@
 import json
+import os
+import shutil
+import stat
+import tempfile
 from datetime import datetime, timezone
 from pathlib import Path
 from textwrap import dedent
@@ -146,4 +150,86 @@ Q&A.md before doing anything else.
         return None
 
     def write_runtime_config(self, project_root: Path, config: object) -> None:
-        raise NotImplementedError("write_runtime_config is implemented in Task 4")
+        """Write hook scripts to .fleet/hooks/ and merge fleet entries into .claude/settings.json."""
+        project_root = Path(project_root)
+        self._install_hooks(project_root)
+        self._merge_settings(project_root)
+
+    # ------------------------------------------------------------------
+    # Internals
+    # ------------------------------------------------------------------
+
+    _FLEET_HOOK_ENTRIES: dict[str, list[dict]] = {
+        "PreCompact": [
+            {
+                "_fleet_managed": True,
+                "matcher": "",
+                "hooks": [{"type": "command", "command": ".fleet/hooks/precompact.sh"}],
+            }
+        ],
+        "PreToolUse": [
+            {
+                "_fleet_managed": True,
+                "matcher": "AskUserQuestion",
+                "hooks": [
+                    {
+                        "type": "command",
+                        "command": ".fleet/hooks/pretool_askuserquestion.sh",
+                    }
+                ],
+            }
+        ],
+    }
+
+    @classmethod
+    def _shipped_hooks_dir(cls) -> Path:
+        """Return the hooks/ directory shipped inside the fleet package."""
+        return Path(__file__).parent.parent / "hooks"
+
+    @classmethod
+    def _install_hooks(cls, project_root: Path) -> None:
+        """Copy hook scripts into <project_root>/.fleet/hooks/ with mode 0755."""
+        dest_dir = project_root / ".fleet" / "hooks"
+        dest_dir.mkdir(parents=True, exist_ok=True)
+        src_dir = cls._shipped_hooks_dir()
+        for script_name in ("precompact.sh", "pretool_askuserquestion.sh"):
+            src = src_dir / script_name
+            dst = dest_dir / script_name
+            shutil.copy2(src, dst)
+            dst.chmod(stat.S_IRWXU | stat.S_IRGRP | stat.S_IXGRP | stat.S_IROTH | stat.S_IXOTH)
+
+    @classmethod
+    def _merge_settings(cls, project_root: Path) -> None:
+        """Merge fleet hook entries into .claude/settings.json atomically."""
+        settings_path = project_root / ".claude" / "settings.json"
+        settings_path.parent.mkdir(parents=True, exist_ok=True)
+
+        existing: dict = {}
+        if settings_path.exists():
+            try:
+                existing = json.loads(settings_path.read_text(encoding="utf-8"))
+            except (json.JSONDecodeError, OSError):
+                existing = {}
+
+        hooks: dict[str, list] = existing.get("hooks") or {}
+
+        for event_type, fleet_entries in cls._FLEET_HOOK_ENTRIES.items():
+            event_hooks = [e for e in hooks.get(event_type, []) if not e.get("_fleet_managed")]
+            event_hooks.extend(fleet_entries)
+            hooks[event_type] = event_hooks
+
+        merged = dict(existing)
+        merged["hooks"] = hooks
+
+        json_text = json.dumps(merged, indent=2) + "\n"
+        fd, tmp_path = tempfile.mkstemp(dir=settings_path.parent, suffix=".tmp")
+        try:
+            with os.fdopen(fd, "w", encoding="utf-8") as fh:
+                fh.write(json_text)
+            os.replace(tmp_path, settings_path)
+        except Exception:
+            try:
+                os.unlink(tmp_path)
+            except OSError:
+                pass
+            raise

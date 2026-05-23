@@ -231,13 +231,13 @@ def test_normalize_thinking_event():
 
 
 # ---------------------------------------------------------------------------
-# write_runtime_config not yet implemented
+# write_runtime_config is implemented (Task 4)
 # ---------------------------------------------------------------------------
 
-def test_write_runtime_config_raises_not_implemented(tmp_path: Path):
+def test_write_runtime_config_runs_without_error(tmp_path: Path):
     adapter = _adapter()
-    with pytest.raises(NotImplementedError):
-        adapter.write_runtime_config(tmp_path, {})
+    adapter.write_runtime_config(tmp_path, {})
+    assert (tmp_path / ".claude" / "settings.json").exists()
 
 
 # ---------------------------------------------------------------------------
