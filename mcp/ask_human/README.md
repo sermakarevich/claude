@@ -14,7 +14,7 @@ it from a separate channel.
 metadata, answer the selected one on the right.*
 
 ```
- subagent / Workflow agent ── ask_human_question("Deploy?", ["yes","no"], timeout_s=600)
+ subagent / Workflow agent ── ask_human_question("Deploy?", ["yes","no"])
         │                                                   ▲
         ▼  INSERT pending row, then block-poll              │ {"answer": "yes"}
    ┌──────────────┐        ┌───────────────────────────┐   │
@@ -57,11 +57,12 @@ A single tool, kept deliberately simple:
 
 | Tool | Behavior |
 |------|----------|
-| `ask_human_question(prompt, options?, multi_select?, agent_id?, session_id?, timeout_s?, default?, priority?)` | **Blocks until a human answers** — open-ended by default. The wait is async and the connection is kept alive with periodic progress pings, so blocking for minutes or hours is safe. Returns `{id, status, answer, answered_by}`. Pass `timeout_s` to cap the wait; on timeout it returns `default` with status `expired`. |
+| `ask_human_question(prompt, options?, multi_select?, agent_id?, session_id?, priority?)` | **Blocks until a human answers** — the wait is open-ended, with no timeout. It's async and the connection is kept alive with periodic progress pings, so blocking for minutes or hours is safe. Returns `{id, status, answer, answered_by}` (`status` is `answered` or `cancelled`). |
 
-By default a call **waits indefinitely**. For unattended runs, **pass `timeout_s`
-+ `default`** so an agent falls back to a safe answer instead of waiting on an
-absent human forever.
+A call **waits indefinitely** until a human answers — there is no timeout. Keep
+an operator console open (`agent-chat` or `agent-chat web`) so questions get
+answered promptly; an unanswered question blocks its caller until you respond or
+cancel it.
 
 ### Example (from a subagent / tool-using agent)
 
@@ -70,8 +71,6 @@ ans = ask_human_question(
     prompt="Migration will drop the legacy index. Proceed?",
     options=["proceed", "skip", "abort run"],
     agent_id="migrate:orders",
-    timeout_s=900,
-    default="skip",
     priority=10,
 )
 # -> {"id": "...", "status": "answered", "answer": "proceed", "answered_by": "web"}

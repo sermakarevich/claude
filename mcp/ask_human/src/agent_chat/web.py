@@ -35,15 +35,11 @@ _PAGE = """<!doctype html>
 <title>ask_human</title>
 <style>
 :root{
-  --bg:#f6f7f9;--surface:#fff;--surface-2:#f0f2f5;--border:#e4e7ec;
-  --text:#101828;--muted:#667085;--accent:#4f46e5;--accent-soft:#eef2ff;
-  --amber:#b45309;--amber-soft:#fef3c7;
-}
-@media (prefers-color-scheme:dark){:root{
+  color-scheme:dark;
   --bg:#0d0f14;--surface:#15181f;--surface-2:#1b1f28;--border:#272c37;
   --text:#e7e9ee;--muted:#98a2b3;--accent:#818cf8;--accent-soft:#1e2233;
   --amber:#fbbf24;--amber-soft:#2a2310;
-}}
+}
 *{box-sizing:border-box}
 html,body{height:100%}
 body{margin:0;display:flex;background:var(--bg);color:var(--text);
@@ -112,10 +108,9 @@ button:disabled{opacity:.6;cursor:default}
 
 #toast{position:fixed;bottom:22px;left:50%;
   transform:translateX(-50%) translateY(20px);
-  background:#101828;color:#fff;padding:10px 18px;border-radius:10px;font-size:13px;
+  background:#2a2f3a;color:#fff;padding:10px 18px;border-radius:10px;font-size:13px;
   opacity:0;pointer-events:none;transition:.25s;box-shadow:0 8px 24px rgba(0,0,0,.2)}
 #toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
-@media (prefers-color-scheme:dark){#toast{background:#2a2f3a}}
 </style>
 </head>
 <body>

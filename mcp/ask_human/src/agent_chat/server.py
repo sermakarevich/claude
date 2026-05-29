@@ -8,12 +8,11 @@ a shared SQLite store (see ``store.py``) and blocks until a human answers it via
 any operator frontend — the ``agent-chat`` CLI/TUI or the web dashboard — then
 returns the answer to the calling agent.
 
-The wait is asynchronous and open-ended: by default a question blocks
-*indefinitely* until a human answers. To keep the MCP connection healthy across
+The wait is asynchronous and open-ended: a question blocks *indefinitely* until
+a human answers — there is no timeout. To keep the MCP connection healthy across
 arbitrarily long waits, the tool never blocks the event loop (it ``await``s
 between store polls) and emits a periodic progress notification as a keepalive,
-so the client won't time the request out and drop it. Pass ``timeout_s`` to cap
-the wait.
+so the client won't time the request out and drop it.
 
 Run standalone:  uv run python -m agent_chat.server   (stdio transport)
 """
@@ -22,7 +21,7 @@ from __future__ import annotations
 
 import asyncio
 import time
-from typing import Any, Optional, Union
+from typing import Any, Optional
 
 from mcp.server.fastmcp import Context, FastMCP
 
@@ -44,9 +43,9 @@ mcp = FastMCP(
         "`ask_human_question` whenever you need human judgment, approval, or missing "
         "information to proceed instead of guessing — it records the question and "
         "BLOCKS until a person answers from a separate operator console, then returns "
-        "their answer. By default it waits indefinitely; pass `options` for a "
-        "multiple-choice decision, or omit them for free-text input. On unattended "
-        "runs set `timeout_s` and a `default` so you don't wait forever."
+        "their answer. The wait is open-ended (no timeout): it blocks until a "
+        "human responds. Pass `options` for a multiple-choice decision, or omit "
+        "them for free-text input."
     ),
 )
 
@@ -111,16 +110,15 @@ async def ask_human_question(
     multi_select: bool = False,
     agent_id: Optional[str] = None,
     session_id: Optional[str] = None,
-    timeout_s: Optional[float] = None,
-    default: Optional[Union[str, list[str]]] = None,
     priority: int = 0,
     ctx: Optional[Context] = None,
 ) -> dict[str, Any]:
     """Ask the human operator a question and BLOCK until they answer.
 
-    By default the wait is open-ended — the call blocks until a human responds,
-    and the connection is kept alive across long waits, so waiting minutes or
-    hours is safe. Set ``timeout_s`` (with a ``default``) to cap it.
+    The wait is open-ended: the call blocks until a human responds — there is no
+    timeout. The connection is kept alive across long waits (a periodic progress
+    ping resets the client's request timeout), so blocking for minutes or hours
+    is safe.
 
     Args:
         prompt: The question to show the operator.
@@ -129,14 +127,11 @@ async def ask_human_question(
         agent_id: Label for who is asking (e.g. the subagent/task label) so the
             operator can tell concurrent questions apart.
         session_id: Optional grouping key (e.g. the workflow run id).
-        timeout_s: Give up after this many seconds. Omit to wait indefinitely.
-            On timeout the question expires and `default` is returned.
-        default: Answer to return if `timeout_s` elapses with no human response.
         priority: Higher numbers surface first in the operator's queue.
 
     Returns:
-        {"id", "status", "answer", "answered_by"}. `status` is "answered",
-        "expired" (timed out — `answer` is `default`), or "cancelled".
+        {"id", "status", "answer", "answered_by"}. `status` is "answered" or
+        "cancelled".
     """
     qid = store.create(
         prompt=prompt,
@@ -144,8 +139,6 @@ async def ask_human_question(
         multi_select=multi_select,
         agent_id=agent_id,
         session_id=session_id,
-        timeout_s=timeout_s,
-        default_answer=default,
         priority=priority,
     )
     return _result(await _await_answer(store, qid, ctx))
