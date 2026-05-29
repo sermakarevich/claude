@@ -8,8 +8,13 @@ MCP tools, and an MCP tool may block until it returns — so this server gives
 them an `ask_human_question` tool that records the question and waits until you answer
 it from a separate channel.
 
+![The agent-chat web operator console](assets/web-dashboard.png)
+
+*The `agent-chat web` console: every pending question on the left with its
+metadata, answer the selected one on the right.*
+
 ```
- subagent / Workflow agent ── ask_human_question("Deploy?", ["yes","no"], timeout_s=600)
+ subagent / Workflow agent ── ask_human_question("Deploy?", ["yes","no"])
         │                                                   ▲
         ▼  INSERT pending row, then block-poll              │ {"answer": "yes"}
    ┌──────────────┐        ┌───────────────────────────┐   │
@@ -52,10 +57,12 @@ A single tool, kept deliberately simple:
 
 | Tool | Behavior |
 |------|----------|
-| `ask_human_question(prompt, options?, multi_select?, agent_id?, session_id?, timeout_s?, default?, priority?)` | **Blocks** until a human answers, then returns `{id, status, answer, answered_by}`. On timeout it returns `default` with status `expired`. |
+| `ask_human_question(prompt, options?, multi_select?, agent_id?, session_id?, priority?)` | **Blocks until a human answers** — the wait is open-ended, with no timeout. It's async and the connection is kept alive with periodic progress pings, so blocking for minutes or hours is safe. Returns `{id, status, answer, answered_by}` (`status` is `answered` or `cancelled`). |
 
-**Always pass `timeout_s` + `default` for unattended runs** so an agent can't
-hang forever waiting on an absent human.
+A call **waits indefinitely** until a human answers — there is no timeout. Keep
+an operator console open (`agent-chat` or `agent-chat web`) so questions get
+answered promptly; an unanswered question blocks its caller until you respond or
+cancel it.
 
 ### Example (from a subagent / tool-using agent)
 
@@ -64,8 +71,6 @@ ans = ask_human_question(
     prompt="Migration will drop the legacy index. Proceed?",
     options=["proceed", "skip", "abort run"],
     agent_id="migrate:orders",
-    timeout_s=900,
-    default="skip",
     priority=10,
 )
 # -> {"id": "...", "status": "answered", "answer": "proceed", "answered_by": "web"}
