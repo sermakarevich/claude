@@ -8,6 +8,11 @@ MCP tools, and an MCP tool may block until it returns — so this server gives
 them an `ask_human_question` tool that records the question and waits until you answer
 it from a separate channel.
 
+![The agent-chat web operator console](assets/web-dashboard.png)
+
+*The `agent-chat web` console: every pending question on the left with its
+metadata, answer the selected one on the right.*
+
 ```
  subagent / Workflow agent ── ask_human_question("Deploy?", ["yes","no"], timeout_s=600)
         │                                                   ▲
@@ -52,10 +57,11 @@ A single tool, kept deliberately simple:
 
 | Tool | Behavior |
 |------|----------|
-| `ask_human_question(prompt, options?, multi_select?, agent_id?, session_id?, timeout_s?, default?, priority?)` | **Blocks** until a human answers, then returns `{id, status, answer, answered_by}`. On timeout it returns `default` with status `expired`. |
+| `ask_human_question(prompt, options?, multi_select?, agent_id?, session_id?, timeout_s?, default?, priority?)` | **Blocks until a human answers** — open-ended by default. The wait is async and the connection is kept alive with periodic progress pings, so blocking for minutes or hours is safe. Returns `{id, status, answer, answered_by}`. Pass `timeout_s` to cap the wait; on timeout it returns `default` with status `expired`. |
 
-**Always pass `timeout_s` + `default` for unattended runs** so an agent can't
-hang forever waiting on an absent human.
+By default a call **waits indefinitely**. For unattended runs, **pass `timeout_s`
++ `default`** so an agent falls back to a safe answer instead of waiting on an
+absent human forever.
 
 ### Example (from a subagent / tool-using agent)
 
