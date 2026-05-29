@@ -1,0 +1,17 @@
+default: help
+
+# Show available recipes
+help:
+    @just --list
+
+# Install the MCP server and agent-chat CLI (copies to ~/.claude/mcp-servers/ask_human and registers with Claude)
+install:
+    bash install.sh
+
+# Sync dependencies
+sync:
+    uv sync
+
+# Run tests
+test: sync
+    uv run pytest tests/ -v

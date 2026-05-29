@@ -1,0 +1,18 @@
+[project]
+name = "agent-chat"
+version = "0.2.0"
+description = "Human-in-the-loop question broker: headless agents ask via an MCP server and a person answers from the `agent-chat` operator console."
+requires-python = ">=3.11"
+dependencies = [
+    "mcp>=1.0.0",
+]
+
+[project.scripts]
+agent-chat = "agent_chat.cli:main"
+
+[build-system]
+requires = ["setuptools>=61"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+where = ["src"]
