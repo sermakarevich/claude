@@ -29,15 +29,6 @@ The **SQLite store is the single source of truth**; every frontend is a thin
 client. Answering is an atomic `UPDATE ... WHERE status='pending'`, so the first
 responder wins and channels can't double-answer.
 
-## Why not MCP elicitation?
-
-MCP's [elicitation](https://modelcontextprotocol.io/specification/draft/client/elicitation)
-capability (Claude Code ≥ 2.1.76) is the "official" way for a server to request
-input — but it routes through the **host UI**, the same surface subagents can't
-reach, and subagent support is undocumented. The broker is deliberately
-decoupled from the host: it owns its own out-of-band channel, survives long
-blocks, and treats *thousands of agents → one queue* as the normal case.
-
 ## Install
 
 ```bash
