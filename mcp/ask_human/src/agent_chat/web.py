@@ -51,7 +51,8 @@ body{margin:0;display:flex;background:var(--bg);color:var(--text);
   display:flex;align-items:center;justify-content:space-between}
 .brand{display:flex;align-items:center;gap:8px;font-weight:700;font-size:15px}
 .dot{width:8px;height:8px;border-radius:50%;background:#22c55e;
-  box-shadow:0 0 0 3px rgba(34,197,94,.18)}
+  box-shadow:0 0 0 3px rgba(34,197,94,.18);transition:background-color .2s,box-shadow .2s}
+.dot.off{background:#3f3f46;box-shadow:none}
 .count{color:var(--muted);font-size:12.5px;font-weight:500;font-variant-numeric:tabular-nums}
 .list{flex:1;overflow-y:auto;padding:8px}
 
@@ -70,7 +71,7 @@ body{margin:0;display:flex;background:var(--bg);color:var(--text);
 .tag.prio{background:var(--amber-soft);color:var(--amber)}
 .tags .id{margin-left:auto;color:var(--muted);font:11px ui-monospace,SFMono-Regular,Menlo,monospace}
 
-.main{flex:1;height:100vh;overflow-y:auto;padding:40px 48px}
+.main{flex:1;min-height:0;overflow-y:auto;padding:40px 48px}
 .detail-head{margin-bottom:6px}
 .detail-agent{font-size:22px;font-weight:700}
 .detail-meta{display:flex;flex-wrap:wrap;gap:6px 14px;margin-top:8px;
@@ -156,6 +157,10 @@ function toast(msg){
 function renderList(){
   const list = $("#list");
   $("#count").textContent = questions.length + " pending";
+  // Indicator: green dot (+ count in the tab title) when questions are hanging,
+  // dim gray when the queue is empty.
+  $(".dot").classList.toggle("off", questions.length === 0);
+  document.title = questions.length ? "(" + questions.length + ") ask_human" : "ask_human";
   list.innerHTML = "";
   if(!questions.length){
     list.appendChild(h("div", "empty", "No pending questions."));
